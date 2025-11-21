@@ -23,9 +23,9 @@ services:
       dockerfile: Dockerfile
     container_name: jwt-service
     environment:
-      RABBITMQ_URL: amqp://rabbitmq:5672
-      JWT_SECRET: your-super-secret-key-change-in-production
-      JWT_EXPIRATION: 1h
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -41,8 +41,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      PORT: 3000
-      RABBITMQ_URL: amqp://rabbitmq:5672
+      - PORT=${PORT}
+      - RABBITMQ_URL=${RABBITMQ_URL}
     depends_on:
       rabbitmq:
         condition: service_healthy
