@@ -9,6 +9,8 @@ build/
 # Environment variables
 .env.local
 .env.production
+jwt-service/.env
+web-gateway/.env
 
 # Logs
 logs/
