@@ -1,0 +1,57 @@
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nestjs-network
+
+  jwt-service:
+    build:
+      context: ./jwt-service
+      dockerfile: Dockerfile
+    container_name: jwt-service
+    environment:
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      JWT_SECRET: your-super-secret-key-change-in-production
+      JWT_EXPIRATION: 1h
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - nestjs-network
+    restart: on-failure
+
+  web-gateway:
+    build:
+      context: ./web-gateway
+      dockerfile: Dockerfile
+    container_name: web-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      jwt-service:
+        condition: service_started
+    networks:
+      - nestjs-network
+    restart: on-failure
+
+networks:
+  nestjs-network:
+    driver: bridge
